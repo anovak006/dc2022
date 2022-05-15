@@ -1,0 +1,119 @@
+# pull official base image
+FROM python:3.10-slim-bullseye AS dcapi-build
+
+COPY upgrade-packages.sh .
+RUN ./upgrade-packages.sh
+
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+
+# set work directory
+WORKDIR /usr/src/app
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+## virtualenv
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# install dependencies
+RUN set -eux \
+    # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
+    # Alpine
+    # && addgroup --gid $USER_GID -S $USERNAME \
+    # && adduser -u $USER_UID -S $USERNAME -G $USERNAME \
+    # Debian
+    && groupadd --gid $USER_GID $USERNAME \
+    && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && pip install --upgrade pip setuptools wheel pip-tools
+
+## add and install requirements
+COPY ./requirements-dcapi.txt .
+RUN pip install -r requirements-dcapi.txt \
+    && rm -rf /root/.cache/pip
+
+FROM python:3.10-slim-bullseye AS dcapi-dev
+
+COPY upgrade-packages.sh install-packages.sh ./
+RUN ./upgrade-packages.sh && \
+    ./install-packages.sh
+
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# set work directory
+WORKDIR /usr/src/app
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+## virtualenv
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+
+# copy application
+COPY --from=dcapi-build $VIRTUAL_ENV $VIRTUAL_ENV
+
+# copy dev environment
+COPY ./requirements-dcapi-dev.in . 
+RUN pip-compile requirements-dcapi-dev.in > requirements-dcapi-dev.txt \
+    && pip install -r requirements-dcapi-dev.txt \
+    && rm -rf /root/.cache/pip
+
+# Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
+RUN set -eux \
+    && groupadd --gid $USER_GID $USERNAME \
+    && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && chown -R ${USER_UID}:${USER_GID} ./ \
+    && chown -R ${USER_UID}:${USER_GID} ${VIRTUAL_ENV} \
+    && rm /etc/localtime \
+    && ln -s /usr/share/zoneinfo/Europe/Zagreb /etc/localtime
+
+
+USER $USERNAME
+
+
+FROM python:3.10-slim-bullseye AS dcapi
+
+COPY upgrade-packages.sh .
+RUN ./upgrade-packages.sh
+
+ARG USERNAME=evidence
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# set work directory
+WORKDIR /usr/src/app
+
+## virtualenv
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# copy requirements
+COPY --from=dcapi-build $VIRTUAL_ENV $VIRTUAL_ENV
+
+# copy project
+COPY ./dcapi /usr/src/app/dcapi
+
+# Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
+RUN set -eux \
+    && groupadd --gid $USER_GID $USERNAME \
+    && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && chown -R ${USER_UID}:${USER_GID} ./ \
+    && chown -R ${USER_UID}:${USER_GID} ${VIRTUAL_ENV} \
+    && rm /etc/localtime \
+    && ln -s /usr/share/zoneinfo/Europe/Zagreb /etc/localtime
+
+USER $USERNAME
+
+#run server
+# CMD uvicorn e2vidence.main:app --reload --workers 1 --host 0.0.0.0 --port 8000 --proxy-headers
+CMD gunicorn dcapi.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000  --log-level info --access-logfile -

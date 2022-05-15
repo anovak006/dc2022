@@ -1,0 +1,50 @@
+{
+	"name": "DCUDAPI",
+	"dockerComposeFile": "../docker-compose.yml",
+	"context": "..",
+	"build": {
+		// "dockerfile": "../Dockerfile.hrterritories",
+		// "context": "..",
+        "target": "dcapi-dev",
+        "args": {
+            "ARG1": "FOO",
+            "ARG2": "BAR"
+        }
+	},
+	"service": "dcapi",
+	"workspaceFolder": "/usr/src/app",
+	"shutdownAction": "stopContainer",
+
+	// Use 'appPort' to create a container with published ports. If the port isn't working, be sure
+	// your server accepts connections from all interfaces (0.0.0.0 or '*'), not just localhost.
+	// In this case, "--host 0.0.0.0 --port 9000" needs to be passed into Flask to make this happen.
+	"appPort": [8002],
+	
+
+	// Comment out the next line to run as root instead. Linux users, 
+	// update Dockerfile with your user's UID/GID if not 1000.
+	// "runArgs": ["-u", "vscode"],
+
+	// Use 'settings' to set *default* container specific settings.json values on container create. 
+	// You can edit these settings after create using File > Preferences > Settings > Remote.
+	"settings": {
+		"terminal.integrated.shell.linux": "/bin/bash",
+		"python.pythonPath": "/opt/venv/bin/python",
+		"python.linting.pylintEnabled": false,
+		"python.linting.flake8Enabled": true,
+		"python.linting.flake8Path": "/opt/venv/bin/flake8",
+		// "python.linting.pylintPath": "/usr/local/bin/pylint",
+		"python.linting.enabled": true
+	},
+
+	// Specifies a command to run after the container is created
+	// "postCreateCommand": "",
+
+	"extensions": [
+		"ms-python.python",
+		"ms-python.vscode-pylance"
+	],
+
+	// "remoteUser": "vscode",
+	// "containerUser": "vscode"
+}

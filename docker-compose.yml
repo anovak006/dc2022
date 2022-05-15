@@ -1,0 +1,27 @@
+version: '3.9'
+
+services:
+  dcapi:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dcapi
+      target: dcapi-dev
+    # network_mode: "bridge"
+    # user: vscode
+    command: sleep infinity
+    # command: uvicorn dcapi.main:app --reload --workers 1 --host 0.0.0.0 --port 8000 --proxy-headers
+    volumes:
+      - .:/usr/src/app/
+    ports:
+      - 8000:8000
+    environment:
+      - DEBUG=false
+      - DEBUGGER=DCAPI
+      
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    

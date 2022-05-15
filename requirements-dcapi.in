@@ -1,0 +1,5 @@
+# production env
+fastapi
+uvicorn
+gunicorn
+pydantic[email,dotenv]
