@@ -1,13 +1,37 @@
 version: '3.9'
 
 services:
+  traefik:
+    image: traefik:2.6
+    container_name: "traefik"
+    command:
+      # - --log.level=DEBUG
+      # - --accesslog=true
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --entryPoints.http.address=:80
+      - --entryPoints.https.address=:443
+      - --providers.docker=true
+      - --providers.file.directory=/config/
+      - --providers.file.watch=true
+      - --providers.docker.network=proxy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - ./dctraefik/certs:/certs:ro
+      - ./dctraefik/config/:/config/
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      # Attach the traefik container to the proxy network
+      - proxy
+
   dcapi:
     build: 
       context: .
       dockerfile: Dockerfile.dcapi
       target: dcapi-dev
-    # network_mode: "bridge"
-    # user: vscode
     command: sleep infinity
     # command: uvicorn dcapi.main:app --reload --workers 1 --host 0.0.0.0 --port 8000 --proxy-headers
     volumes:
@@ -17,6 +41,17 @@ services:
     environment:
       - DEBUG=false
       - DEBUGGER=DCAPI
+      - TZ=Europe/Zagreb
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.dcapi_https.redirectscheme.scheme=https"
+      - "traefik.http.routers.app.entrypoints=http"
+      - "traefik.http.routers.dcapi.rule=Host(`dc2022.dorscluc.org`)"
+      - "traefik.http.routers.dcapi.middlewares=dcapi_https@docker"
+      - "traefik.http.routers.dcapi_https.rule=Host(`dc2022.dorscluc.org`)"
+      - "traefik.http.routers.dcapi_https.tls=true"
+      - "traefik.http.routers.dcapi_https.entrypoints=https"
+      - "traefik.frontend.passHostHeader: true"
       
     networks:
       - proxy

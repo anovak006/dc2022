@@ -1,0 +1,9 @@
+[[tls.certificates]] # 1. certificate
+   certFile = "/certs/dc2022.crt"
+   keyFile = "/certs/dc2022.key"
+
+[tls.stores]
+  [tls.stores.default]
+   [tls.stores.default.defaultCertificate] 
+     certFile = "/certs/dc2022.crt"
+     keyFile = "/certs/dc2022.key"
