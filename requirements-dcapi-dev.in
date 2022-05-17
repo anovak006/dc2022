@@ -1,3 +1,5 @@
 # development env
 flake8
 debugpy
+alembic
+eralchemy

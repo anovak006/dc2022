@@ -3,3 +3,6 @@ fastapi
 uvicorn
 gunicorn
 pydantic[email,dotenv]
+sqlalchemy
+sqlalchemy-utils
+psycopg2-binary
