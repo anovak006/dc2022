@@ -1,6 +1,15 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from uuid import UUID, uuid4
+from uuid import UUID
+from typing import List
+
+from dcapi.helpers import get_db
+from dcdb.api import (
+    kreiraj_sudionika,
+)
 
 router = APIRouter()
 
@@ -27,12 +36,15 @@ def update_sudionik(uuid: UUID, sudionik: Sudionik):
     }
 
 
-@router.post("/")
-def create_sudionik(sudionik: Sudionik):
-    uuid = uuid4()
-    return {
-        "UUID": uuid,
-        "Sudionik": f'{sudionik.ime} {sudionik.prezime}',
-        "e-mail": sudionik.email,
-        'telefon': sudionik.tel
-    }
+@router.delete("/{uuid}", status_code=204)
+async def delete_sudionik(
+    uuid: UUID,
+    db: Session = Depends(get_db)
+):
+    try:
+        obrisi_sudionika(db, uuid)
+    except NoResultFound:
+        raise HTTPException(status_code=404,
+                            detail=f"Sudionik s UUID: {uuid} ne postoji!")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=e)

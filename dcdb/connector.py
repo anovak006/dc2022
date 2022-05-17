@@ -10,7 +10,7 @@ password = os.environ["POSTGRES_PASSWORD"]
 db_name = os.environ["POSTGRES_DB"]
 # SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 SQLALCHEMY_DATABASE_URL = (f"postgresql://{user}:{password}"
-                           f"@udata_db_1/{db_name}")
+                           f"@dors2022_db_1/{db_name}")
 
 
 def dumps(d):
