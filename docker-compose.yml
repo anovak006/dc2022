@@ -71,6 +71,29 @@ services:
     networks:
       - backend
 
+  redis:
+    image: "redis:alpine"
+    command: redis-server --requirepass ${REDIS_PASS}
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - TZ=Europe/Zagreb
+    networks:
+      - backend
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+        - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+        - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+        - TZ=Europe/Zagreb
+    ports:
+        - 5672:5672
+        - 15672:15672
+    networks:
+      - backend
+  
 networks:
   proxy:
     external: true
