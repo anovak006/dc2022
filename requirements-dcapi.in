@@ -6,3 +6,6 @@ pydantic[email,dotenv]
 sqlalchemy
 sqlalchemy-utils
 psycopg2-binary
+redis
+aioredis
+celery

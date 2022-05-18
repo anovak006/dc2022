@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.10-slim-bullseye AS dcapi-build
+FROM python:3.10-slim-bullseye AS dcworker-build
 
 COPY upgrade-packages.sh .
 RUN ./upgrade-packages.sh
@@ -33,11 +33,11 @@ RUN set -eux \
     && pip install --upgrade pip setuptools wheel pip-tools
 
 ## add and install requirements
-COPY ./requirements-dcapi.txt .
-RUN pip install -r requirements-dcapi.txt \
+COPY ./requirements-dcworker.txt .
+RUN pip install -r requirements-dcworker.txt \
     && rm -rf /root/.cache/pip
 
-FROM python:3.10-slim-bullseye AS dcapi-dev
+FROM python:3.10-slim-bullseye AS dcworker-dev
 
 COPY upgrade-packages.sh install-packages.sh ./
 RUN ./upgrade-packages.sh && \
@@ -60,12 +60,12 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 
 # copy application
-COPY --from=dcapi-build $VIRTUAL_ENV $VIRTUAL_ENV
+COPY --from=dcworker-build $VIRTUAL_ENV $VIRTUAL_ENV
 
 # copy dev environment
-COPY ./requirements-dcapi-dev.in . 
-RUN pip-compile requirements-dcapi-dev.in > requirements-dcapi-dev.txt \
-    && pip install -r requirements-dcapi-dev.txt \
+COPY ./requirements-dcworker-dev.in . 
+RUN pip-compile requirements-dcworker-dev.in > requirements-dcworker-dev.txt \
+    && pip install -r requirements-dcworker-dev.txt \
     && rm -rf /root/.cache/pip
 
 # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
@@ -81,7 +81,7 @@ RUN set -eux \
 USER $USERNAME
 
 
-FROM python:3.10-slim-bullseye AS dcapi
+FROM python:3.10-slim-bullseye AS dcworker
 
 COPY upgrade-packages.sh .
 RUN ./upgrade-packages.sh
@@ -98,10 +98,9 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # copy requirements
-COPY --from=dcapi-build $VIRTUAL_ENV $VIRTUAL_ENV
+COPY --from=dcworker-build $VIRTUAL_ENV $VIRTUAL_ENV
 
 # copy project
-COPY ./dcapi /usr/src/app/dcapi
 COPY ./dcworker /usr/src/app/dcworker
 
 # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
@@ -116,5 +115,4 @@ RUN set -eux \
 USER $USERNAME
 
 #run server
-# CMD uvicorn e2vidence.main:app --reload --workers 1 --host 0.0.0.0 --port 8000 --proxy-headers
-CMD gunicorn dcapi.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000  --log-level info --access-logfile -
+CMD celery -A dcworker.worker worker -l INFO -Q dc2022 -c 1

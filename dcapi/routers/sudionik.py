@@ -74,7 +74,7 @@ async def read_sudionik(
         raise HTTPException(status_code=404,
                             detail=f"Sudionik s UUID: {uuid} ne postoji!")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=e)
+        raise HTTPException(status_code=500, detail=f'{e.__doc__} {str(e)}')
     del sudionik.id
     return sudionik
 
@@ -96,7 +96,7 @@ async def update_sudionik(
             detail=f"Sudionik s email adresom: {sudionik.email} već postoji!"
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=e)
+        raise HTTPException(status_code=500, detail=f'{e.__doc__} {str(e)}')
     del sudionik.id
     return sudionik
 
@@ -114,7 +114,7 @@ async def create_sudionik(
             detail=f"Sudionik s email adresom: {sudionik.email} već postoji!"
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=e)
+        raise HTTPException(status_code=500, detail=f'{e.__doc__} {str(e)}')
     return {"UUID": sudionik.uuid}
 
 
@@ -129,4 +129,4 @@ async def delete_sudionik(
         raise HTTPException(status_code=404,
                             detail=f"Sudionik s UUID: {uuid} ne postoji!")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=e)
+        raise HTTPException(status_code=500, detail=f'{e.__doc__} {str(e)}')
