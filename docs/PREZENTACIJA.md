@@ -221,10 +221,45 @@ docker exec -it dors2022_db_1 psql -U dors -d postgres -c "DROP DATABASE IF EXIS
 - U alembic version datoteci ručno dodaj kod za dodavanje i uklanjanje ekstenzije kod primjene alembic revizije
 <!-- _footer: `git checkout 953ef57abcf92` -->
 ---
-# DC2022 Singe Page Application - dcsp554f1eb585ba5554f1eb585ba5a
+# Asinkrono izvođenje zahtjevnih zadataka
+![Celery Architecture](https://www.cloudamqp.com/img/blog/celery-rabbitmq.png)
+
+Izvor: https://www.cloudamqp.com/blog/how-to-run-celery-with-rabbitmq.html
+
+---
+# Napravimo pripremu za Celery - dodajmo Redis i RabbitMQ u kontejnerima
+<!-- _footer: `git checkout d70f2b71735bd` -->
+---
+# Dodajmo worker za "teške" poslove i RESTful API prema njemu
+<!-- _footer: `git checkout 266c9e1b90a12` -->
+---
+# Dodajmo RESTful API prema Redisu
+<!-- _footer: `git checkout 266c9e1b90a12` -->
+---
+# Sve što sam još mislio, ali nije stalo u ovu radionicu
+- SSG (Static Site Generator)
+https://about.gitlab.com/blog/2022/04/18/comparing-static-site-generators/
+- SPA (Single Page Application)
+https://aurelia.io/
+---
+# Ova prezentacija je izrađena kao kod
+https://github.com/anovak006/dc2022/blob/main/docs/PREZENTACIJA.md
+## Korišten je Marp
+https://marp.app/
+
+## Nažalost Marp ne podržava Mermaid
+https://mermaid-js.github.io/
+Pomoču kojega možete napraviti super grafove
+
+---
+# Hvala svima koji na bilo koji način doprinose otvorenom kodu jer bez njih svijet bi bio nezamislivo drugačije mjesto!
+https://www.wired.com/insights/2013/07/in-a-world-without-open-source/
+
+---
+# DC2022 Singe Page Application - dcspa
 
 ## Prvo treba instalirati noviju verziju node.js
-Za instlaciju ćemo koristiti nvm (Node Version Manager)
+Za instlaciju ćemohttps://aurelia.io/ koristiti nvm (Node Version Manager)
 ```shell
 $ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 $ source ~/.bashrc
@@ -265,4 +300,3 @@ makes v3.0.2 https://makes.js.org
 [makes] Project dcspa has been created.
 ✔ Do you want to install npm dependencies now? › Yes, use npm
 ```
----
